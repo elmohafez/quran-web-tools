@@ -1,6 +1,10 @@
 $(document).ready(function(){
   var page_select = $("#page")
   var text_container = $("#glyph_text")
+  var color_sel = null
+  var color_chooser = $("#color_chooser")
+  var color_count = 6
+  var highlight_state = false
 
   // init page numbers select
   var options = ""
@@ -32,39 +36,94 @@ $(document).ready(function(){
     page_select.val(page_id).change()
   }
 
+  var render_glyph_matching = function(page_id, info)
+  {
+    var div = "<div><table>"
+    var i = 1
+    var normal_text_tokens = text[info.sura_id][info.aya_id]
+    $.each(info.glyphs, function(glyph_id, glyph){
+      div += "<tr>"
+      div += "<td>"+i+"</td>"
+      div += "<td class='glyph P_"+page_id+"'>"+glyph+"</td>"
+      div += "<td>"+normal_text_tokens[i-1]+"</td>"
+      div += "</tr>"
+      i++
+    })
+    div += "</table></div>"
+    return div
+  }
+
+  var render_highlight = function(page_id, info)
+  {
+    var div = "<div>"
+    $.each(info.glyphs, function(glyph_id, glyph){
+      div += "<span class='noselect glyph P_"+page_id+"'>"+glyph+"</span>"
+    })
+    div += "</div>"
+    return div
+  }
+
   // render page
   page_select.change(function(){
     var page_id = $(this).val()
     text_container.empty()
+    highlight_state = false
+
     $.each(extract_glyphs(page_id), function(info_id, info){
       var sura_name = suras[parseInt(info.sura_id) - 1]
       var h3 = "<h3>سورة " + sura_name + " - الآية " + info.aya_id + "</h3>"
-      var div = "<div><table>"
-      var i = 1
-      var normal_text_tokens = text[info.sura_id][info.aya_id]
-      $.each(info.glyphs, function(glyph_id, glyph){
-        div += "<tr>"
-        div += "<td>"+i+"</td>"
-        div += "<td class='glyph P_"+page_id+"'>"+glyph+"</td>"
-        div += "<td>"+normal_text_tokens[i-1]+"</td>"
-        div += "</tr>"
-        i++
-      })
-      div += "</table></div>"
+      var div = mode == 'highlight' ? render_highlight(page_id, info) : render_glyph_matching(page_id, info)
       text_container.append($(h3 + div))
     })
-    // try {
-    //   text_container.accordion("destroy")
-    // } catch(e) {}
     var font_name = 'QCF_P' + zero_pad(page_id)
-    $("td.glyph", text_container).fontface({
+    $(".glyph", text_container).fontface({
       fontName: font_name,
       fileName: font_name,
       fontFamily: font_name
     })
-    // text_container.accordion({collapsible: true, heightStyle: "content"})
+
+    // highlight specific events
+    if (mode == 'highlight') {
+      $("span.glyph")
+      .on("mouseover", function(){
+        if ($(this).data("persist"))
+          return
+        $(this).addClass("color_chooser_c" + color_sel)
+        if (highlight_state) {
+          $(this).data("persist", true)
+        }
+      })
+      .on("mouseout", function(){
+        if (!$(this).data("persist"))
+          $(this).removeClass("color_chooser_c" + color_sel)
+      })
+      .on("mousedown", function(){
+        highlight_state = true
+        $(this).data("persist", true)
+        console.log("start", $(this))
+      })
+      .on("mouseup", function(){
+        highlight_state = false
+        console.log("end", $(this))
+      })
+    }
+
     update_cookie(page_id)
   })
+
+  // create color chooser
+  for(var c = 0; c < color_count; c++){
+    color_chooser.append("<span color_id='"+c+"' class='color_chooser_c"+c+"'></span>")
+  }
+  $("span", color_chooser).click(function(){
+    // unselect previous selected
+    $("span", color_chooser).removeClass("color_sel")
+    // select new span
+    var span = $(this)
+    color_sel = span.attr("color_id")
+    span.addClass("color_sel")
+  })
+  $("span:first", color_chooser).click()
 
   $("#report").click(function(){
     var page_id = page_select.val()
@@ -124,5 +183,10 @@ $(document).ready(function(){
       alert(errors.length + " errors detected")
     }
   })
+
+  $("#save_highlights").click(function(){
+    console.log("Now saving highlights")
+  })
+
   read_cookie()
 })

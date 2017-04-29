@@ -44,13 +44,86 @@
   font-size: 18px
 }
 
-#glyph_text td {
+#glyph_text td, #glyph_text span {
   font-size: 28px
 }
 
-#glyph_text td {
+#glyph_text td, #glyph_text span {
   border: 1px solid;
   padding: 0 10px 0 10px;
+}
+
+#glyph_text div {
+  width: 100%;
+  word-wrap: break-word;
+}
+
+#color_chooser {
+  position: fixed;
+  top: 5px;
+  left: 5px;
+  border: 1px;
+  width: 324px;
+  height: 50px;
+}
+
+#save_highlights {
+  position: fixed;
+  top: 70px;
+  left: 5px;
+  width: 100px;
+  height: 50px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+#color_chooser span {
+  width: 50px;
+  height: 50px;
+  margin: 0;
+  display: inline-block;
+  opacity: 0.5;
+  cursor: pointer;
+  border: 2px solid white;
+}
+
+#color_chooser span:hover, .color_sel {
+  border: 2px solid black !important;
+  opacity: 1 !important;
+}
+
+.color_chooser_c0 {
+  background-color: #FF0000;
+}
+
+.color_chooser_c1 {
+  background-color: #00FF00;
+}
+
+.color_chooser_c2 {
+  background-color: #0000FF;
+}
+
+.color_chooser_c3 {
+  background-color: #FFFF00;
+}
+
+.color_chooser_c4 {
+  background-color: #00FFFF;
+}
+
+.color_chooser_c5 {
+  background-color: #FF00FF;
+}
+
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
 }
 
 .page_pointer {

@@ -1,7 +1,7 @@
 <html>
   <head>
     <title>
-      El-Mohafez Text/Glyph matching
+      El-Mohafez Highlight Data Entry
     </title>
     <meta charset="utf-8">
     <script src="jquery-1.10.2.min.js"></script>
@@ -13,14 +13,18 @@
     <script src="jquery.cookie.js"></script>
     <script src="jquery.fontface.js"></script>
     <script src="util.js"></script>
-    <script>var mode="matching"</script>
+    <script>var mode="highlight"</script>
     <script src="glyph_matching.js"></script>
     <link rel="stylesheet" type="text/css" href="styles.css"/>
     <link rel="stylesheet" type="text/css" href="jquery-ui.min.css"/>
   </head>
   <body dir="rtl">
+    <div id="color_chooser" dir="ltr">
+    </div>
+    <button id="save_highlights">Save</button>
+
     <h1>
-      مراجعة تطابق النص مع فونت الرسم العثماني - محفظ الوحيين
+      إدخال البيانات لتظليل الآيات للتفسير - محفظ الوحيين
     </h1>
     <center>
       <a href="#" id="prev_page">الصفحة السابقة</a>
@@ -30,13 +34,5 @@
     <div id="glyph_text">
       بسم الله
     </div>
-    <center>
-      <button id="autodetect">AUTODETECT</button>
-<!--       <button id="report">أبلغ عن خطأ</button>
-      <div id="success" class="alert">تم الإبلاغ بنجاح</div>
-      <div id="error" class="alert">خطأ في الإبلاغ</div>
-      <div id="warning" class="alert">لم يتم الإبلاغ. <span class="alert-details"></span></div>
-      <div>للتواصل عبر تويتر: <a dir="ltr" href="http://twitter.com/elmohafezapp">@elmohafezapp</a></div>
- -->    </center>
   </body>
 </html>
