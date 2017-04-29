@@ -1,0 +1,63 @@
+<html>
+  <head>
+    <title>
+      El-Mohafez Segmentation Demo
+    </title>
+    <meta charset="utf-8">
+    <script src="jquery-1.10.2.min.js"></script>
+    <script src="Quran-text.js"></script>
+    <script src="qaree.js"></script>
+    <script src="util.js"></script>
+    <script src="segdata.js"></script>
+    <script src="jquery.cookie.js"></script>
+    <script src="segdemo.js"></script>
+    <link rel="stylesheet" type="text/css" href="styles.css"/>
+  </head>
+  <body dir="rtl">
+    <h1>
+      عرض تزامن الصوت مع الكلمات - محفظ الوحيين
+    </h1>
+    القارئ
+    <select id="qaree">
+    </select>
+    <select id="sura">
+    </select>
+    <select id="aya">
+    </select>
+    <input type="checkbox" value="1" id="auto_advance" checked="checked">انتقال تلقائي</input>
+    &nbsp; السرعة: <select id="playback_rate">
+      <option value="0.5">Slower</option>
+      <option value="0.75">Slow</option>
+      <option value="1" selected>Normal</option>
+<!--       <option value="1.5">Fast</option>
+      <option value="2.0">Faster</option>
+ -->    </select>
+    <select id="audio_source">
+      <option value="absolute">Remote Audio</option>
+      <option value="relative">Relative</option>
+    </select>
+    <span id="audio_download_link">
+      <a>رابط تحميل الملفات الصوتية دفعة واحدة</a>
+    </span>
+    <p>
+      <audio id="player" controls>
+        <source type="audio/mpeg">
+      </audio>
+    </p>
+    <div id="text">
+      اختر قارئا للبدء
+    </div>
+    <center>
+<!--       <button id="report">أبلغ عن خطأ</button>
+      <div id="success" class="alert">تم الإبلاغ بنجاح</div>
+      <div id="error" class="alert">خطأ في الإبلاغ</div>
+      <div id="warning" class="alert">لم يتم الإبلاغ. <span class="alert-details"></span></div>
+      <div>للتواصل عبر تويتر: <a dir="ltr" href="http://twitter.com/elmohafezapp">@elmohafezapp</a></div>
+ -->    </center>
+    <p>
+      Sync error: <span id="sync_error"></span> ms
+    </p>
+    <textarea dir="ltr" cols=100 rows=10 style="margin-top: 10px;"></textarea>
+    <div id="silence">سكوت</div>
+  </body>
+</html>

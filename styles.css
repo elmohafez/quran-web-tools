@@ -1,0 +1,80 @@
+#text {
+  font-size: 48px;
+  display: inline;
+}
+.token {
+  border: 1px solid red;
+  padding: 10px;
+  cursor: pointer;
+}
+.token_active {
+  background-color: yellow;
+}
+#silence {
+  font-size: 24px;
+  display: none;
+  background-color: red;
+  color: white;
+}
+#report {
+  font-size: 32px;
+}
+.alert {
+  font-size: 32px;
+  display: none;
+  color: white;
+  border-radius: 5px;
+  border: 1px solid black;
+}
+#success {
+  background-color: green;
+}
+#error {
+  background-color: red;
+}
+#warning {
+  background-color: yellow;
+  color: black;
+}
+.alert-details {
+
+}
+
+#glyph_text h3 {
+  font-size: 18px
+}
+
+#glyph_text td {
+  font-size: 28px
+}
+
+#glyph_text td {
+  border: 1px solid;
+  padding: 0 10px 0 10px;
+}
+
+.page_pointer {
+  cursor: pointer;
+  color: blue;
+  text-decoration: underline;
+}
+
+#hadeeth_table td {
+  max-width: 100px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#hadeeth_details .sanad {
+  color: blue;
+}
+
+#hadeeth_details .matn {
+  color: green;
+}
+
+#hadeeth_details .matn #audio_url {
+  color: black;
+  font-size: smaller;
+}
