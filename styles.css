@@ -67,13 +67,13 @@
   height: 50px;
 }
 
-#save_highlights {
+#download_highlights {
   position: fixed;
   top: 70px;
   left: 5px;
-  width: 100px;
+  width: 200px;
   height: 50px;
-  font-size: 20px;
+  font-size: 15px;
   cursor: pointer;
 }
 

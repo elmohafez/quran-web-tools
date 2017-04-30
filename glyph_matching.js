@@ -4,7 +4,9 @@ $(document).ready(function(){
   var color_sel = null
   var color_chooser = $("#color_chooser")
   var color_count = 6
-  var highlight_state = false
+  var color_chooser_classnames = ""
+  var highlight_start = null
+  var db = new QuranHighlightsStore()
 
   // init page numbers select
   var options = ""
@@ -38,8 +40,7 @@ $(document).ready(function(){
 
   var render_glyph_matching = function(page_id, info)
   {
-    var div = "<div><table>"
-    var i = 1
+    var div = "<div><table>", i = 1
     var normal_text_tokens = text[info.sura_id][info.aya_id]
     $.each(info.glyphs, function(glyph_id, glyph){
       div += "<tr>"
@@ -55,25 +56,74 @@ $(document).ready(function(){
 
   var render_highlight = function(page_id, info)
   {
-    var div = "<div>"
+    var div = "<div sura_aya_ids='"+info.sura_id+"-"+info.aya_id+"'>", i = 0
     $.each(info.glyphs, function(glyph_id, glyph){
-      div += "<span class='noselect glyph P_"+page_id+"'>"+glyph+"</span>"
+      div += "<span glyph_id='"+i+"' class='noselect glyph P_"+page_id+"'>"+glyph+"</span>"
+      i++
     })
     div += "</div>"
     return div
+  }
+
+  var same_verse = function(info1, info2)
+  {
+    return info1.sura_id == info2.sura_id && info1.aya_id == info2.aya_id
+  }
+
+  var update_total_highlights_count = function()
+  {
+    db.select_highlights_count().then(function(count){
+      $("#download_highlights").text("Download " + count + " records")
+    })
+  }
+  update_total_highlights_count()
+
+  var load_highlights = function(page_id)
+  {
+    // load from db and apply on spans
+    db.select_highlights(page_id).each(function(highlight){
+      var div = $("div[sura_aya_ids='"+highlight.sura_aya_ids+"']")
+      $("span.glyph", div).each(function(){
+        var span = $(this),
+            glyph_id = parseInt(span.attr("glyph_id")),
+            start_glyph_id = parseInt(highlight.start_glyph_id),
+            end_glyph_id = parseInt(highlight.end_glyph_id)
+        if (glyph_id >= start_glyph_id && glyph_id <= end_glyph_id) {
+          span.addClass("color_chooser_c" + highlight.color)
+          span.data("persist", highlight.color)
+        }
+      })
+    })
   }
 
   // render page
   page_select.change(function(){
     var page_id = $(this).val()
     text_container.empty()
-    highlight_state = false
+    highlight_start = null
 
     $.each(extract_glyphs(page_id), function(info_id, info){
       var sura_name = suras[parseInt(info.sura_id) - 1]
       var h3 = "<h3>سورة " + sura_name + " - الآية " + info.aya_id + "</h3>"
-      var div = mode == 'highlight' ? render_highlight(page_id, info) : render_glyph_matching(page_id, info)
-      text_container.append($(h3 + div))
+      var div = $(mode == 'highlight' ? render_highlight(page_id, info) : render_glyph_matching(page_id, info))
+      text_container.append(h3)
+      text_container.append(div)
+      if (mode == 'highlight') {
+        // add delete link
+        var del_link = $("<a style='cursor: pointer'>[مسح التظليل]</a>")
+        del_link.click(function(){
+          db.delete_highlights(info.sura_id, info.aya_id)
+          .then(function(){
+            // remove background colors and data from spans
+            update_total_highlights_count()
+            $("span.glyph", div)
+              .removeData("persist")
+              .removeClass(color_chooser_classnames)
+          })
+        })
+        text_container.append(del_link)
+      }
+      div.data("info", info)
     })
     var font_name = 'QCF_P' + zero_pad(page_id)
     $(".glyph", text_container).fontface({
@@ -86,11 +136,15 @@ $(document).ready(function(){
     if (mode == 'highlight') {
       $("span.glyph")
       .on("mouseover", function(){
-        if ($(this).data("persist"))
+        var span = $(this)
+        // return if hovering a persisted span
+        if (span.data("persist"))
           return
-        $(this).addClass("color_chooser_c" + color_sel)
-        if (highlight_state) {
-          $(this).data("persist", true)
+        // give span selected color
+        span.addClass("color_chooser_c" + color_sel)
+        // persist span if highlight has started and within same verse
+        if (highlight_start && same_verse(span.parent().data("info"), highlight_start.info)) {
+          span.data("persist", color_sel)
         }
       })
       .on("mouseout", function(){
@@ -98,14 +152,31 @@ $(document).ready(function(){
           $(this).removeClass("color_chooser_c" + color_sel)
       })
       .on("mousedown", function(){
-        highlight_state = true
-        $(this).data("persist", true)
-        console.log("start", $(this))
+        var span = $(this), div = span.parent()
+        span.data("persist", color_sel)
+        highlight_start = {
+          info: div.data("info"),
+          glyph_id: span.attr("glyph_id")
+        }
       })
       .on("mouseup", function(){
-        highlight_state = false
-        console.log("end", $(this))
+        var span = $(this), div = span.parent(),
+            s = parseInt(highlight_start.glyph_id),
+            e = parseInt(span.attr("glyph_id"))
+        var start_glyph_id = Math.min(s, e),
+            end_glyph_id = Math.max(s, e)
+        db.insert_highlight({
+          page_id: page_id,
+          sura_id: highlight_start.info.sura_id,
+          aya_id: highlight_start.info.aya_id,
+          start_glyph_id: start_glyph_id,
+          end_glyph_id: end_glyph_id,
+          color: span.data("persist")
+        })
+        .then(update_total_highlights_count)
+        highlight_start = null
       })
+      load_highlights(page_id)
     }
 
     update_cookie(page_id)
@@ -114,6 +185,7 @@ $(document).ready(function(){
   // create color chooser
   for(var c = 0; c < color_count; c++){
     color_chooser.append("<span color_id='"+c+"' class='color_chooser_c"+c+"'></span>")
+    color_chooser_classnames += " color_chooser_c" + c
   }
   $("span", color_chooser).click(function(){
     // unselect previous selected
