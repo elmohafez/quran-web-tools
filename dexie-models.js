@@ -22,4 +22,8 @@ var QuranHighlightsStore = function()
   this.select_highlights_count = function() {
     return db.highlights.count()
   }
+
+  this.select_all_highlights = function() {
+    return db.highlights.toArray()
+  }
 }

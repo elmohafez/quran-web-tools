@@ -134,6 +134,7 @@ $(document).ready(function(){
 
     // highlight specific events
     if (mode == 'highlight') {
+      $("span:first", color_chooser).click()
       $("span.glyph")
       .on("mouseover", function(){
         var span = $(this)
@@ -195,7 +196,6 @@ $(document).ready(function(){
     color_sel = span.attr("color_id")
     span.addClass("color_sel")
   })
-  $("span:first", color_chooser).click()
 
   $("#report").click(function(){
     var page_id = page_select.val()
@@ -256,8 +256,39 @@ $(document).ready(function(){
     }
   })
 
-  $("#save_highlights").click(function(){
-    console.log("Now saving highlights")
+  var download = function(filename, text) {
+    var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename);
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  }
+
+  $("#download_highlights").click(function(){
+    db.select_all_highlights()
+    .then(function(highlights){
+      var blob = [
+        "page_id",
+        "sura_id",
+        "aya_id",
+        "start_glyph_id",
+        "end_glyph_id",
+        "color"
+      ].join(",") + "\n" +
+      $.map(highlights, function(highlight){
+        return [
+          highlight.page_id,
+          highlight.sura_id,
+          highlight.aya_id,
+          highlight.start_glyph_id,
+          highlight.end_glyph_id,
+          highlight.color
+        ].join(",")
+      }).join("\n")
+      download("quran-highlights.csv", blob)
+    })
   })
 
   read_cookie()
