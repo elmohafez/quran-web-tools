@@ -161,6 +161,7 @@ $(document).ready(function(){
         }
       })
       .on("mouseup", function(){
+        if (!highlight_start) return
         var span = $(this), div = span.parent(),
             s = parseInt(highlight_start.glyph_id),
             e = parseInt(span.attr("glyph_id"))
