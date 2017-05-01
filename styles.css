@@ -82,7 +82,7 @@
   height: 50px;
   margin: 0;
   display: inline-block;
-  opacity: 0.5;
+  opacity: 0.8;
   cursor: pointer;
   border: 2px solid white;
 }
@@ -124,6 +124,10 @@
         -ms-user-select: none; /* Internet Explorer/Edge */
             user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome and Opera */
+}
+
+#page_title {
+  margin-top: 150px;
 }
 
 .page_pointer {
