@@ -7,6 +7,7 @@ $(document).ready(function(){
   var color_chooser_classnames = ""
   var current_highlight = null
   var db = new QuranHighlightsStore()
+  var undo_stack = []
 
   // init page numbers select
   var options = ""
@@ -72,7 +73,7 @@ $(document).ready(function(){
 
   var update_total_highlights_count = function()
   {
-    db.select_highlights_count().then(function(count){
+    return db.select_highlights_count().then(function(count){
       $("#download_highlights").text("Download " + count + " records")
     })
   }
@@ -96,11 +97,21 @@ $(document).ready(function(){
     })
   }
 
+  var toggle_undo_button = function()
+  {
+    if (undo_stack.length == 0)
+      $("#undo_highlights").hide()
+    else
+      $("#undo_highlights").show()
+  }
+
   // render page
   page_select.change(function(){
     var page_id = $(this).val()
     text_container.empty()
     current_highlight = null
+    undo_stack.length = 0
+    toggle_undo_button()
 
     $.each(extract_glyphs(page_id), function(info_id, info){
       var sura_name = suras[parseInt(info.sura_id) - 1]
@@ -166,15 +177,27 @@ $(document).ready(function(){
         setTimeout(function(){alert("يجب تظليل كلمات متصلة وعدم ترك فراغات")}, 0)
         return
       }
+      // cloning current_highlight as it must be nulled immediately
+      // to prevent calling this function repeatedly
+      // but it is needed to push on the undo stack after inserting 
+      // in the db and gettings its primary key
+      var current_highlight_clone = $.extend(true, {}, current_highlight)
       var start_glyph_id = current_highlight.glyph_ids[0],
-          end_glyph_id = current_highlight.glyph_ids.pop()
-      db.insert_highlight({
-        page_id: current_highlight.page_id,
-        sura_id: current_highlight.info.sura_id,
-        aya_id: current_highlight.info.aya_id,
-        start_glyph_id: start_glyph_id,
-        end_glyph_id: end_glyph_id,
-        color: current_highlight.color
+          end_glyph_id = current_highlight.glyph_ids.pop(),
+          highlight = {
+            page_id: current_highlight.page_id,
+            sura_id: current_highlight.info.sura_id,
+            aya_id: current_highlight.info.aya_id,
+            start_glyph_id: start_glyph_id,
+            end_glyph_id: end_glyph_id,
+            color: current_highlight.color
+          }
+      db.insert_highlight(highlight)
+      .then(function(highlight_id){
+        console.log("inserted highlight of id", highlight_id)
+        current_highlight_clone.id = highlight_id
+        undo_stack.push(current_highlight_clone)
+        toggle_undo_button()
       })
       .then(update_total_highlights_count)
       current_highlight = null
@@ -188,16 +211,6 @@ $(document).ready(function(){
           return false
       }
       return true
-    }
-
-    var undo_highlight = function(highlight)
-    {
-      // undoes a given highlight by removing its color and persist state
-      for (var i = 0; i < highlight.glyph_ids.length; i++) {
-        $("span.glyph[glyph_id='" + highlight.glyph_ids[i] + "']", highlight.div)
-          .removeData("persist")
-          .removeClass(color_chooser_classnames)
-      }
     }
 
     // highlight specific events
@@ -352,6 +365,27 @@ $(document).ready(function(){
         ].join(",")
       }).join("\n")
       download("quran-highlights.csv", blob)
+    })
+  })
+
+  var undo_highlight = function(highlight)
+  {
+    console.log("undoeing highlight", highlight)
+    // undoes a given highlight by removing its color and persist state
+    for (var i = 0; i < highlight.glyph_ids.length; i++) {
+      $("span.glyph[glyph_id='" + highlight.glyph_ids[i] + "']", highlight.div)
+        .removeData("persist")
+        .removeClass(color_chooser_classnames)
+    }
+  }
+
+  $("#undo_highlights").click(function(){
+    if (undo_stack.length == 0) return
+    var highlight = undo_stack.pop()
+    db.delete_highlight(highlight.id)
+    .then(function(){
+      undo_highlight(highlight)
+      toggle_undo_button()
     })
   })
 

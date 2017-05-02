@@ -8,11 +8,15 @@ var QuranHighlightsStore = function()
 
   this.insert_highlight = function(params) {
     params.sura_aya_ids = params.sura_id + "-" + params.aya_id
-    return db.highlights.put(params)
+    return db.highlights.add(params)
   }
 
   this.delete_highlights = function(sura_id, aya_id) {
     return db.highlights.where("sura_aya_ids").equals(sura_id + "-" + aya_id).delete()
+  }
+
+  this.delete_highlight = function(id) {
+    return db.highlights.where("id").equals(id).delete()
   }
 
   this.select_highlights = function(page_id) {
