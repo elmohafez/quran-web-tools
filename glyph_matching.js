@@ -28,14 +28,14 @@ $(document).ready(function(){
   })
 
   // reload last location or start from page 1
-  var update_cookie = function(page_id)
+  var save_last_page = function(page_id)
   {
-    $.cookie('page_id', page_id, { expires: 30 });
+    localStorage.setItem('page_id', page_id);
   }
 
-  var read_cookie = function()
+  var load_last_page = function()
   {
-    var page_id = $.cookie('page_id') || 1
+    var page_id = localStorage.getItem('page_id') || 1;
     page_select.val(page_id).change()
   }
 
@@ -256,7 +256,7 @@ $(document).ready(function(){
       $(document).bind("mouseup", end_highlight)
     }
 
-    update_cookie(page_id)
+    save_last_page(page_id)
   })
 
   // create color chooser
@@ -387,5 +387,5 @@ $(document).ready(function(){
     })
   })
 
-  read_cookie()
+  load_last_page()
 })
