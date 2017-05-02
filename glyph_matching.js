@@ -132,35 +132,56 @@ $(document).ready(function(){
       fontFamily: font_name
     })
 
+    var span_hover = function(span, is_touch)
+    {
+        // return if hovering a persisted span
+      if (span.data("persist")) return
+
+      // if original event is mouse: give span color (either highlighting or hovering)
+      // if hovering, the mouseout will remove the color
+      // if the event is touch: only color when highlighting the same verse
+      if (!is_touch)
+        span.addClass("color_chooser_c" + color_sel)
+
+        // persist span if highlight has started and within same verse
+        if (highlight_start && same_verse(span.parent().data("info"), highlight_start.info)) {
+          span.data("persist", color_sel)
+        span.addClass("color_chooser_c" + color_sel)
+      }
+        }
+
     // highlight specific events
     if (mode == 'highlight') {
       $("span:first", color_chooser).click()
       $("span.glyph")
-      .on("mouseover", function(){
+      .bind("mouseover", function(e){
         var span = $(this)
-        // return if hovering a persisted span
-        if (span.data("persist"))
-          return
-        // give span selected color
-        span.addClass("color_chooser_c" + color_sel)
-        // persist span if highlight has started and within same verse
-        if (highlight_start && same_verse(span.parent().data("info"), highlight_start.info)) {
-          span.data("persist", color_sel)
-        }
+        span_hover(span, false)
       })
-      .on("mouseout", function(){
+      .bind("touchmove", function(e)
+      {
+        // the event target will always point to the element at which the touch
+        // was originally triggered (i.e touchstart), not the one that is currently behind the pointer
+        var touch = e.originalEvent.touches[0]
+        var el = $(document.elementFromPoint(touch.clientX, touch.clientY))
+        if (el.hasClass('glyph'))
+          span_hover(el, true)
+      })
+      .bind("mouseout", function(){
         if (!$(this).data("persist"))
           $(this).removeClass("color_chooser_c" + color_sel)
       })
-      .on("mousedown", function(){
+      .bind("mousedown touchstart", function(e){
+        e.preventDefault()  // handle either mouse or touch, but not both!
         var span = $(this), div = span.parent()
-        span.data("persist", color_sel)
         highlight_start = {
           info: div.data("info"),
           glyph_id: span.attr("glyph_id")
         }
+        span_hover(span, false)
       })
-      .on("mouseup", function(){
+      .bind("mouseup touchend", function(e){
+        e.preventDefault()  // handle either mouse or touch, but not both!
         if (!highlight_start) return
         var span = $(this), div = span.parent(),
             s = parseInt(highlight_start.glyph_id),
@@ -178,6 +199,7 @@ $(document).ready(function(){
         .then(update_total_highlights_count)
         highlight_start = null
       })
+  
       load_highlights(page_id)
     }
 
