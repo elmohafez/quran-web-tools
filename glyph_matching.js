@@ -16,12 +16,12 @@ $(document).ready(function(){
   page_select.empty().append(options)
 
   // attach events to prev/next page
-  $("#prev_page").click(function(){
+  $("#prev_page").bind("mousedown", function(){
     var page = parseInt(page_select.val())
     if (page > 1)
       page_select.val(page - 1).change()
   })
-  $("#next_page").click(function(){
+  $("#next_page").bind("mousedown", function(){
     var page = parseInt(page_select.val())
     if (page < 604)
       page_select.val(page + 1).change()
@@ -122,7 +122,7 @@ $(document).ready(function(){
       if (mode == 'highlight') {
         // add delete link
         var del_link = $("<a style='cursor: pointer'>[مسح التظليل]</a>")
-        del_link.click(function(){
+        del_link.bind("mousedown", function(){
           db.delete_highlights(info.sura_id, info.aya_id)
           .then(function(){
             // remove background colors and data from spans
@@ -194,7 +194,6 @@ $(document).ready(function(){
           }
       db.insert_highlight(highlight)
       .then(function(highlight_id){
-        console.log("inserted highlight of id", highlight_id)
         current_highlight_clone.id = highlight_id
         undo_stack.push(current_highlight_clone)
         toggle_undo_button()
@@ -215,7 +214,7 @@ $(document).ready(function(){
 
     // highlight specific events
     if (mode == 'highlight') {
-      $("span:first", color_chooser).click()
+      $("span:first", color_chooser).mousedown()
       $("span.glyph")
       .bind("mouseover", function(e){
         var span = $(this)
@@ -265,7 +264,7 @@ $(document).ready(function(){
     color_chooser.append("<span color_id='"+c+"' class='color_chooser_c"+c+"'></span>")
     color_chooser_classnames += " color_chooser_c" + c
   }
-  $("span", color_chooser).click(function(){
+  $("span", color_chooser).bind("mousedown", function(){
     // unselect previous selected
     $("span", color_chooser).removeClass("color_sel")
     // select new span
@@ -343,7 +342,7 @@ $(document).ready(function(){
     document.body.removeChild(element);
   }
 
-  $("#download_highlights").click(function(){
+  $("#download_highlights").bind("mousedown", function(){
     db.select_all_highlights()
     .then(function(highlights){
       var blob = [
@@ -370,7 +369,6 @@ $(document).ready(function(){
 
   var undo_highlight = function(highlight)
   {
-    console.log("undoeing highlight", highlight)
     // undoes a given highlight by removing its color and persist state
     for (var i = 0; i < highlight.glyph_ids.length; i++) {
       $("span.glyph[glyph_id='" + highlight.glyph_ids[i] + "']", highlight.div)
@@ -379,7 +377,7 @@ $(document).ready(function(){
     }
   }
 
-  $("#undo_highlights").click(function(){
+  $("#undo_highlights").bind("mousedown", function(){
     if (undo_stack.length == 0) return
     var highlight = undo_stack.pop()
     db.delete_highlight(highlight.id)
