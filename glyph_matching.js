@@ -5,7 +5,7 @@ $(document).ready(function(){
   var color_chooser = $("#color_chooser")
   var color_count = 6
   var color_chooser_classnames = ""
-  var highlight_start = null
+  var current_highlight = null
   var db = new QuranHighlightsStore()
 
   // init page numbers select
@@ -100,7 +100,7 @@ $(document).ready(function(){
   page_select.change(function(){
     var page_id = $(this).val()
     text_container.empty()
-    highlight_start = null
+    current_highlight = null
 
     $.each(extract_glyphs(page_id), function(info_id, info){
       var sura_name = suras[parseInt(info.sura_id) - 1]
@@ -134,7 +134,7 @@ $(document).ready(function(){
 
     var span_hover = function(span, is_touch)
     {
-        // return if hovering a persisted span
+      // return if hovering a persisted span
       if (span.data("persist")) return
 
       // if original event is mouse: give span color (either highlighting or hovering)
@@ -143,12 +143,62 @@ $(document).ready(function(){
       if (!is_touch)
         span.addClass("color_chooser_c" + color_sel)
 
-        // persist span if highlight has started and within same verse
-        if (highlight_start && same_verse(span.parent().data("info"), highlight_start.info)) {
-          span.data("persist", color_sel)
+      // persist span if highlight has started and within same verse
+      if (current_highlight && same_verse(span.parent().data("info"), current_highlight.info)) {
+        current_highlight.glyph_ids.push(parseInt(span.attr("glyph_id")))
+        span.data("persist", color_sel)
         span.addClass("color_chooser_c" + color_sel)
       }
-        }
+    }
+
+    var end_highlight = function()
+    {
+      if (!current_highlight) return
+      // spans may have not been selected in order (e.g multiline)
+      // to add some ugly code, we need to specify a comparator for Array.sort
+      // just to convince it that we are sorting numbers not objects :(
+      current_highlight.glyph_ids.sort(function(a,b){return a - b})
+      // check that the sorted array has no gaps
+      if (!no_gaps(current_highlight.glyph_ids)) {
+        undo_highlight(current_highlight)
+        current_highlight = null
+        // yield execution so that color removal happens before the alert
+        setTimeout(function(){alert("يجب تظليل كلمات متصلة وعدم ترك فراغات")}, 0)
+        return
+      }
+      var start_glyph_id = current_highlight.glyph_ids[0],
+          end_glyph_id = current_highlight.glyph_ids.pop()
+      db.insert_highlight({
+        page_id: current_highlight.page_id,
+        sura_id: current_highlight.info.sura_id,
+        aya_id: current_highlight.info.aya_id,
+        start_glyph_id: start_glyph_id,
+        end_glyph_id: end_glyph_id,
+        color: current_highlight.color
+      })
+      .then(update_total_highlights_count)
+      current_highlight = null
+    }
+
+    var no_gaps = function(array)
+    {
+      // check if a given numeric array has no gaps (must be sorted ascendingly)
+      for (var i = 0; i < array.length - 1; i++) {
+        if (array[i+1] - array[i] > 1)
+          return false
+      }
+      return true
+    }
+
+    var undo_highlight = function(highlight)
+    {
+      // undoes a given highlight by removing its color and persist state
+      for (var i = 0; i < highlight.glyph_ids.length; i++) {
+        $("span.glyph[glyph_id='" + highlight.glyph_ids[i] + "']", highlight.div)
+          .removeData("persist")
+          .removeClass(color_chooser_classnames)
+      }
+    }
 
     // highlight specific events
     if (mode == 'highlight') {
@@ -164,8 +214,7 @@ $(document).ready(function(){
         // was originally triggered (i.e touchstart), not the one that is currently behind the pointer
         var touch = e.originalEvent.touches[0]
         var el = $(document.elementFromPoint(touch.clientX, touch.clientY))
-        if (el.hasClass('glyph'))
-          span_hover(el, true)
+        if (el.hasClass('glyph')) span_hover(el, true)
       })
       .bind("mouseout", function(){
         if (!$(this).data("persist"))
@@ -174,33 +223,25 @@ $(document).ready(function(){
       .bind("mousedown touchstart", function(e){
         e.preventDefault()  // handle either mouse or touch, but not both!
         var span = $(this), div = span.parent()
-        highlight_start = {
+        current_highlight = {
+          div: div,
           info: div.data("info"),
-          glyph_id: span.attr("glyph_id")
+          glyph_ids: [parseInt(span.attr("glyph_id"))],
+          color: color_sel,
+          page_id: page_id
         }
         span_hover(span, false)
       })
       .bind("mouseup touchend", function(e){
         e.preventDefault()  // handle either mouse or touch, but not both!
-        if (!highlight_start) return
-        var span = $(this), div = span.parent(),
-            s = parseInt(highlight_start.glyph_id),
-            e = parseInt(span.attr("glyph_id"))
-        var start_glyph_id = Math.min(s, e),
-            end_glyph_id = Math.max(s, e)
-        db.insert_highlight({
-          page_id: page_id,
-          sura_id: highlight_start.info.sura_id,
-          aya_id: highlight_start.info.aya_id,
-          start_glyph_id: start_glyph_id,
-          end_glyph_id: end_glyph_id,
-          color: span.data("persist")
-        })
-        .then(update_total_highlights_count)
-        highlight_start = null
+        end_highlight()
       })
   
       load_highlights(page_id)
+
+      // bind mouseup on document to handle the case
+      // where user ends the highlighting while outside the glyph spans
+      $(document).bind("mouseup", end_highlight)
     }
 
     update_cookie(page_id)
