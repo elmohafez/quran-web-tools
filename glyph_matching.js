@@ -264,7 +264,8 @@ $(document).ready(function(){
     color_chooser.append("<span color_id='"+c+"' class='color_chooser_c"+c+"'></span>")
     color_chooser_classnames += " color_chooser_c" + c
   }
-  $("span", color_chooser).bind("mousedown", function(){
+  $("span", color_chooser).bind("mousedown touchstart", function(e){
+    e.preventDefault()
     // unselect previous selected
     $("span", color_chooser).removeClass("color_sel")
     // select new span
