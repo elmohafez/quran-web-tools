@@ -16,12 +16,14 @@ $(document).ready(function(){
   page_select.empty().append(options)
 
   // attach events to prev/next page
-  $("#prev_page").bind("mousedown", function(){
+  $("#prev_page").bind("mousedown touchstart", function(e){
+    e.preventDefault()  // handle either mouse or touch, but not both!
     var page = parseInt(page_select.val())
     if (page > 1)
       page_select.val(page - 1).change()
   })
-  $("#next_page").bind("mousedown", function(){
+  $("#next_page").bind("mousedown touchstart", function(e){
+    e.preventDefault()  // handle either mouse or touch, but not both!
     var page = parseInt(page_select.val())
     if (page < 604)
       page_select.val(page + 1).change()
@@ -122,7 +124,8 @@ $(document).ready(function(){
       if (mode == 'highlight') {
         // add delete link
         var del_link = $("<a style='cursor: pointer'>[مسح التظليل]</a>")
-        del_link.bind("mousedown", function(){
+        del_link.bind("mousedown touchstart", function(e){
+          e.preventDefault()  // handle either mouse or touch, but not both!
           db.delete_highlights(info.sura_id, info.aya_id)
           .then(function(){
             // remove background colors and data from spans
@@ -343,7 +346,8 @@ $(document).ready(function(){
     document.body.removeChild(element);
   }
 
-  $("#download_highlights").bind("mousedown", function(){
+  $("#download_highlights").bind("mousedown touchstart", function(e){
+    e.preventDefault()  // handle either mouse or touch, but not both!
     db.select_all_highlights()
     .then(function(highlights){
       var blob = [
@@ -378,11 +382,13 @@ $(document).ready(function(){
     }
   }
 
-  $("#undo_highlights").bind("mousedown", function(){
+  $("#undo_highlights").bind("mousedown touchstart", function(e){
+    e.preventDefault()  // handle either mouse or touch, but not both!
     if (undo_stack.length == 0) return
     var highlight = undo_stack.pop()
     db.delete_highlight(highlight.id)
     .then(function(){
+      update_total_highlights_count()
       undo_highlight(highlight)
       toggle_undo_button()
     })
