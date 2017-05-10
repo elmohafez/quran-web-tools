@@ -165,6 +165,19 @@ $(document).ready(function(){
       }
     }
 
+    var decent_alert = function(message)
+    {
+      // show alert
+      var alerts = $("#alerts")
+        .text(message)
+        .show()
+
+      // hide alert after some time
+      setTimeout(function(){
+        alerts.hide()
+      }, 2000)
+    }
+
     var end_highlight = function()
     {
       if (!current_highlight) return
@@ -178,7 +191,7 @@ $(document).ready(function(){
         undo_highlight(current_highlight)
         current_highlight = null
         // yield execution so that color removal happens before the alert
-        setTimeout(function(){alert("يجب تظليل كلمات متصلة وعدم ترك فراغات")}, 0)
+        setTimeout(function(){decent_alert("يجب تظليل كلمات متصلة وعدم ترك فراغات")}, 0)
         return
       }
       // cloning current_highlight as it must be nulled immediately
