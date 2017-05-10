@@ -172,6 +172,7 @@ $(document).ready(function(){
       // to add some ugly code, we need to specify a comparator for Array.sort
       // just to convince it that we are sorting numbers not objects :(
       current_highlight.glyph_ids.sort(function(a,b){return a - b})
+      // console.log(current_highlight.glyph_ids)
       // check that the sorted array has no gaps
       if (!no_gaps(current_highlight.glyph_ids)) {
         undo_highlight(current_highlight)
@@ -200,8 +201,8 @@ $(document).ready(function(){
         current_highlight_clone.id = highlight_id
         undo_stack.push(current_highlight_clone)
         toggle_undo_button()
+        update_total_highlights_count()
       })
-      .then(update_total_highlights_count)
       current_highlight = null
     }
 
@@ -238,6 +239,7 @@ $(document).ready(function(){
       .bind("mousedown touchstart", function(e){
         e.preventDefault()  // handle either mouse or touch, but not both!
         var span = $(this), div = span.parent()
+        if (span.data("persist")) return // don't highlight already highlighted spans 
         current_highlight = {
           div: div,
           info: div.data("info"),
