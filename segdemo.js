@@ -158,10 +158,14 @@ $(document).ready(function(){
     update_audio_source(sura_id, aya_id)
   })
 
+  var get_verse_filename = function(qaree_id, sura_id, aya_id) {
+    return zero_pad(sura_id) + zero_pad(aya_id)
+        + "." + qaree_audio_format(qaree_id)
+  }
+
   var get_relative_url = function(qaree_id, sura_id, aya_id) {
-    var relative_file = zero_pad(sura_id) + qaree_sura_aya_sep(qaree_id)
-      + zero_pad(aya_id) + "." + qaree_audio_format(qaree_id)
-    return "../quran-audio/" + qaree_id + "/" + relative_file
+    return "../quran-audio/" + qaree_id + "/"
+      + get_verse_filename(qaree_id, sura_id, aya_id)
   }
 
   var get_absolute_url = function(qaree_id, sura_id, aya_id) {
@@ -172,8 +176,7 @@ $(document).ready(function(){
         + "." + qaree_audio_format(qaree_id)
     }
     else
-      return base_url + zero_pad(sura_id) + zero_pad(aya_id)
-        + "." + qaree_audio_format(qaree_id)
+      return base_url + get_verse_filename(qaree_id, sura_id, aya_id)
   }
   
   var update_audio_source = function(sura_id, aya_id){

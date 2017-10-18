@@ -8,7 +8,7 @@
   cursor: pointer;
 }
 .token_active {
-  background-color: yellow;
+  background-color: lightblue;
 }
 #silence {
   font-size: 24px;
